@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>城堡 - 動態歌詞播放器</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .player-card {
+      background: #1e1e1e;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      color: #ffffff;
+      font-size: 1.4rem;
+    }
+    audio {
+      width: 100%;
+      margin-bottom: 25px;
+      outline: none;
+      border-radius: 8px;
+    }
+    .lyrics-container {
+      height: 280px;
+      overflow: hidden;
+      position: relative;
+      mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    }
+    #lyrics-list {
+      list-style: none;
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      will-change: transform;
+    }
+    #lyrics-list li {
+      height: 40px;
+      line-height: 40px;
+      color: #666666;
+      font-size: 0.95rem;
+      transition: color 0.3s, font-size 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+    }
+    #lyrics-list li.active {
+      color: #d4af37; /* 質感金黃色高亮 */
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player-card">
+    <h2>城堡</h2>
+    
+    <!-- iOS 必備的相容性屬性：preload="auto", playsinline, crossorigin="anonymous" -->
+    <audio id="audio" controls preload="auto" playsinline crossorigin="anonymous">
+      <source src="castle.mp3" type="audio/mpeg">
+      您的瀏覽器不支援音訊播放。
+    </audio>
+    
+    <div class="lyrics-container">
+      <ul id="lyrics-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const lrcData = `
+[00:00.00] 城堡
+[00:15.00] 凌晨兩點 畫室的燈還沒熄掉
+[00:20.00] 菸灰落在 那張沒完成的線稿
+[00:25.00] 後頸那塊膠 依舊貼得很好
+[00:30.00] 至少沒有人 聞見鳶尾花在燃燒
+[00:35.00] 藍莓的菸 燒到只剩苦甜味道
+[00:40.00] 松節油的氣味 在窗邊繞了又繞
+[00:45.00] 能證明妳的 其實沒有多少
+[00:50.00] 一張舊照片 和不敢寄出的素描
+[00:55.00] 走廊盡頭 那扇門很低調
+[01:00.00] 鑰匙一直 被我藏在外套
+[01:05.00] 朋友問起 我只說堆些顏料
+[01:10.00] 反正說謊久了 也算一種禮貌
+[01:15.00] 我把妳畫進 沒人看見的牆角
+[01:20.00] 一筆一筆 假裝只是線條
+[01:25.00] 顏料乾了 為什麼妳沒乾掉
+[01:30.00] 越是塗掉 輪廓越是明瞭
+[01:35.00] 我沒有等妳 也沒有忘掉
+[01:40.00] 只是沉得太深 連光都照不到
+[01:45.00] 如果秘密 也需要一座城堡
+[01:50.00] 我住裡面 就好
+[02:00.00] 後來有人 長著相似的眉梢
+[02:05.00] 我卻對她 比誰都更加煩躁
+[02:10.00] 她沒有做錯 其實我都知道
+[02:15.00] 只是她活著 這件事太像嘲笑
+[02:20.00] 那天白色的花 沿著長廊擺好
+[02:25.00] 妳的照片安靜得只剩微笑
+[02:30.00] 我站得很直 連眼淚都嫌吵
+[02:35.00] 只是鳶尾那晚 怎麼也藏不好
+[02:40.00] 走廊盡頭 那扇門很低調
+[02:45.00] 鑰匙一直 被我藏在外套
+[02:50.00] 後來沒人問起 我也不再提到
+[02:55.00] 反正沉默久了 就成了句號
+[03:00.00] 我把妳畫進 沒人看見的牆角
+[03:05.00] 一筆一筆 假裝只是線條
+[03:10.00] 顏料乾了 為什麼妳沒乾掉
+[03:15.00] 越是塗掉 輪廓越是明瞭
+[03:20.00] 我沒有等妳 也沒有忘掉
+[03:25.00] 只是沉得太深 連光都照不到
+[03:30.00] 如果秘密 也需要一座城堡
+[03:35.00] 我住裡面 就好
+[03:40.00] 如果那一年 我沒有退得太早
+[03:45.00] 如果那句喜歡 不必藏得那麼好
+[03:50.00] 如果愛妳 不必假裝只是依靠
+[03:55.00] 算了 妳從來不知道 才最好
+[04:05.00] 我還是畫妳 在沒人去的牆角
+[04:10.00] 只是現在 已經不用打草稿
+[04:15.00] 每一道陰影 我都記得剛好
+[04:20.00] 連妳低著眼 怎麼笑都知道
+[04:25.00] 我沒有愛妳 這句說得真好
+[04:30.00] 說了這麼多年 差點把自己騙到
+[04:35.00] 門鎖生鏽 鑰匙也早就丟掉
+[04:40.00] 就讓你留在最乾淨的年少
+[04:45.00] 這座城堡 我沒有出去
+[04:50.00] 也沒有人來找
+    `;
+
+    const audio = document.getElementById('audio');
+    const lyricsList = document.getElementById('lyrics-list');
+    let parsedLyrics = [];
+
+    function parseLRC(lrc) {
+      const lines = lrc.trim().split('\n');
+      const result = [];
+      const timeExp = /\[(\d{2}):(\d{2})\.(\d{2})\]/;
+
+      lines.forEach(line => {
+        const match = timeExp.exec(line);
+        if (match) {
+          const m = parseInt(match[1]);
+          const s = parseInt(match[2]);
+          const time = m * 60 + s;
+          const text = line.replace(timeExp, '').trim();
+          if (text) result.push({ time, text });
+        }
+      });
+      return result;
+    }
+
+    function render() {
+      parsedLyrics = parseLRC(lrcData);
+      lyricsList.innerHTML = parsedLyrics.map((item, index) => 
+        `<li data-index="${index}">${item.text}</li>`
+      ).join('');
+    }
+
+    render();
+
+    // 解決部分 iOS 裝置 timeupdate 觸發不平滑的問題
+    audio.addEventListener('timeupdate', syncLyrics);
+
+    function syncLyrics() {
+      const currentTime = audio.currentTime;
+      let activeIndex = -1;
+
+      for (let i = 0; i < parsedLyrics.length; i++) {
+        if (currentTime >= parsedLyrics[i].time) {
+          activeIndex = i;
+        } else {
+          break;
+        }
+      }
+
+      if (activeIndex !== -1) {
+        const items = lyricsList.querySelectorAll('li');
+        items.forEach(item => item.classList.remove('active'));
+
+        const activeItem = items[activeIndex];
+        if (activeItem) {
+          activeItem.classList.add('active');
+          const containerHeight = 280;
+          const offset = (activeIndex * 40) - (containerHeight / 2) + 20;
+          lyricsList.style.transform = `translateY(-${Math.max(0, offset)}px)`;
+        }
+      }
+    }
+  </script>
+</body>
+</html>
